@@ -20,6 +20,11 @@ LOCATION = 0
 COLOR = 1
 SPECULAR_EXP = 4
 
+def vertex_color(vertex, vertexMap):
+    if vertexMap.containsKey(vertex):
+        for i, v in vertexMap.entries():
+            
+
 #lighting functions
 def get_lighting(normal, view, ambient, light, symbols, reflect ):
 
