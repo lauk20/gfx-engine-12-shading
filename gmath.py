@@ -20,10 +20,35 @@ LOCATION = 0
 COLOR = 1
 SPECULAR_EXP = 4
 
+#vertexMap should map vertex [x, y, z] to list of index i in polygons
+#returns vertex_normal
+def get_vertex_normal(vertex, vertexMap, polygons):
+    vertex_normal = [0, 0, 0];
+    #print(vertex)
+
+    vertex_dup = vertex[:];
+    for i in range(len(vertex)):
+        vertex_dup[i] = round(vertex[i], 3);
+
+    #print(tuple(vertex_dup));
+    if tuple(vertex_dup) in vertexMap:
+        #print(len(vertexMap[tuple(vertex_dup)]))
+        for index in vertexMap[tuple(vertex_dup)]:
+            print("hi");
+            normal = calculate_normal(polygons, index);
+            for i in range(len(normal)):
+                vertex_normal[i] = vertex_normal[i] + normal[i];
+                print(normal[i]);
+
+            for i in range(3):
+                vertex_normal[i] = vertex_normal[i] / len(vertexMap[tuple(vertex_dup)]);
+
+    return vertex_normal;
+
 def vertex_color(vertex, vertexMap):
-    if vertexMap.containsKey(vertex):
+    if vertex in vertexMap:
         for i, v in vertexMap.entries():
-            
+            print("no");
 
 #lighting functions
 def get_lighting(normal, view, ambient, light, symbols, reflect ):

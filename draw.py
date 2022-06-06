@@ -1,6 +1,10 @@
 from display import *
 from matrix import *
 from gmath import *
+from collections import defaultdict
+import time
+
+vertex_map = { };
 
 def draw_scanline(x0, z0, x1, z1, y, screen, zbuffer, color):
     if x0 > x1:
@@ -69,8 +73,6 @@ def scanline_convert(polygons, i, screen, zbuffer, color):
         z1+= dz1
         y+= 1
 
-
-
 def add_polygon( polygons, x0, y0, z0, x1, y1, z1, x2, y2, z2 ):
     add_point(polygons, x0, y0, z0)
     add_point(polygons, x1, y1, z1)
@@ -81,6 +83,17 @@ def draw_polygons( polygons, screen, zbuffer, view, ambient, light, symbols, ref
         print('Need at least 3 points to draw')
         return
 
+    for i in range(0, len(polygons), 3):
+        hashKey = tuple([round(polygons[i][0], 3), round(polygons[i][1], 3), round(polygons[i][2], 3), round(polygons[i][3], 3)]);
+
+        if hashKey in vertex_map:
+            vertex_map[hashKey].append(i);
+        else:
+            vertex_map[hashKey] = [i];
+
+        #print(vertex_map);
+        #time.sleep(5);
+
     point = 0
     while point < len(polygons) - 2:
 
@@ -90,6 +103,20 @@ def draw_polygons( polygons, screen, zbuffer, view, ambient, light, symbols, ref
         if normal[2] > 0:
 
             color = get_lighting(normal, view, ambient, light, symbols, reflect )
+
+            vertex_dup = polygons[point][:];
+            for i in range(len(vertex_dup)):
+                vertex_dup[i] = round(vertex_dup[i], 3);
+
+            #print(tuple(vertex_dup), tuple(vertex_dup) in vertex_map);
+            #print(tuple(vertex_dup) in vertex_map);
+            #time.sleep(5);
+
+            vertex_normal = get_vertex_normal(polygons[point], vertex_map, polygons);
+            #print(vertex_normal);
+            if (tuple(polygons[point]) in vertex_map):
+                print("ye")
+
             scanline_convert(polygons, point, screen, zbuffer, color)
 
             # draw_line( int(polygons[point][0]),
