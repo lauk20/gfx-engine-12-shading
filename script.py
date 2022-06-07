@@ -91,10 +91,11 @@ def run(filename):
     screen = new_screen()
     zbuffer = new_zbuffer()
     tmp = []
-    step_3d = 100
+    step_3d = 20
     consts = ''
     coords = []
     coords1 = []
+    shading = 'flat'
 
     for command in commands:
         print(command)
@@ -109,7 +110,7 @@ def run(filename):
                     args[0], args[1], args[2],
                     args[3], args[4], args[5])
             matrix_mult( stack[-1], tmp )
-            draw_polygons(tmp, screen, zbuffer, view, ambient, light, symbols, reflect)
+            draw_polygons(tmp, screen, zbuffer, view, ambient, light, symbols, reflect, shading)
             tmp = []
             reflect = '.white'
         elif c == 'sphere':
@@ -118,7 +119,7 @@ def run(filename):
             add_sphere(tmp,
                        args[0], args[1], args[2], args[3], step_3d)
             matrix_mult( stack[-1], tmp )
-            draw_polygons(tmp, screen, zbuffer, view, ambient, light, symbols, reflect)
+            draw_polygons(tmp, screen, zbuffer, view, ambient, light, symbols, reflect, shading)
             tmp = []
             reflect = '.white'
         elif c == 'torus':
@@ -127,7 +128,7 @@ def run(filename):
             add_torus(tmp,
                       args[0], args[1], args[2], args[3], args[4], step_3d)
             matrix_mult( stack[-1], tmp )
-            draw_polygons(tmp, screen, zbuffer, view, ambient, light, symbols, reflect)
+            draw_polygons(tmp, screen, zbuffer, view, ambient, light, symbols, reflect, shading)
             tmp = []
             reflect = '.white'
         elif c == 'line':
@@ -165,4 +166,6 @@ def run(filename):
             display(screen)
         elif c == 'save':
             save_extension(screen, args[0])
+        elif c == 'shading':
+            shading = command['shade_type'];
         # end operation loop
