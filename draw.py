@@ -5,8 +5,9 @@ from collections import defaultdict
 import time
 
 vertex_map = { };
-
+firstpoly = "false"
 def draw_scanline(x0, z0, x1, z1, y, screen, zbuffer, c0, c1):
+    #print(c0, c1, "NOW");
     if x0 > x1:
         tx = x0
         tz = z0
@@ -23,20 +24,34 @@ def draw_scanline(x0, z0, x1, z1, y, screen, zbuffer, c0, c1):
     z = z0
     delta_z = (z1 - z0) / (x1 - x0 + 1) if (x1 - x0 + 1) != 0 else 0
 
-    color = [c0[0], c0[1], c0[2]];
+    color = c0[:];
     delta_color_r = (c1[0] - c0[0]) / (x1 - x0 + 1) if (x1 - x0 + 1) != 0 else 0;
     delta_color_g = (c1[1] - c0[1]) / (x1 - x0 + 1) if (x1 - x0 + 1) != 0 else 0;
     delta_color_b = (c1[2] - c0[2]) / (x1 - x0 + 1) if (x1 - x0 + 1) != 0 else 0
 
-    print(delta_color_r, delta_color_g, delta_color_b, delta_z);
+    #print(delta_color_r, delta_color_g, delta_color_b, delta_z);
 
-    print("scanline")
+    if firstpoly == "true":
+        print(c0, c1, "in scanline");
+        print(delta_color_r, delta_color_g, delta_color_b, delta_z);
+
     while x <= x1:
+        """
         limit_color(color);
         for i in range(3):
             color[i] = int(color[i]);
+        """
         print(color);
-        plot(screen, zbuffer, color, x, y, z)
+
+        if firstpoly == "true":
+            pwqoeir = 1;
+            #time.sleep(1);
+        ncolor = color[:];
+        for i in range(3):
+            ncolor[i] = int(ncolor[i]);
+        limit_color(ncolor);
+
+        plot(screen, zbuffer, ncolor, x, y, z)
         x+= 1
         z+= delta_z
 
@@ -44,7 +59,6 @@ def draw_scanline(x0, z0, x1, z1, y, screen, zbuffer, c0, c1):
         color[1]+= delta_color_g;
         color[2]+= delta_color_b;
 
-    time.sleep(1);
 
 def scanline_convert(polygons, i, screen, zbuffer, color, colorMap):
     flip = False
@@ -114,14 +128,19 @@ def scanline_convert(polygons, i, screen, zbuffer, color, colorMap):
     di1g = (colorMID[1] - colorBOT[1]) / distance1 if distance1 != 0 else 0;
     di1b = (colorMID[2] - colorBOT[2]) / distance1 if distance1 != 0 else 0;
 
-    c0 = colorBOT;
-    c1 = colorBOT;
+    c0 = colorBOT[:];
+    c1 = colorBOT[:];
+
+    #print(di1r, di1g, di1b, "di1r di1g di1b");
+
+    print(di0r, di1r, "di0r di1r")
 
     print(colorTOP, colorMID, colorBOT, "top mid bot");
     print(pointsTOP, pointsMID, pointsBOT, "top mid bot");
 
     while y <= int(points[TOP][1]):
         if ( not flip and y >= int(points[MID][1])):
+            print("FLIPFPFIFIPFIPFPFPIFIPPFIIPFPFPF")
             flip = True
 
             dx1 = (points[TOP][0] - points[MID][0]) / distance2 if distance2 != 0 else 0
@@ -131,14 +150,19 @@ def scanline_convert(polygons, i, screen, zbuffer, color, colorMap):
             di1g = (colorTOP[1] - colorMID[1]) / distance2 if distance2 != 0 else 0;
             di1b = (colorTOP[2] - colorMID[2]) / distance2 if distance2 != 0 else 0;
 
-            print(di1r, di1g, di1b);
-
             x1 = points[MID][0]
             z1 = points[MID][2]
 
-            c1 = colorMID;
+            print(c0, c1, "before flip");
+            c1 = colorMID[:];
+            print(c0, c1, "after flip");
+            print(int(x0), int(x1), y, "x0 x1 y");
 
         #draw_line(int(x0), y, z0, int(x1), y, z1, screen, zbuffer, color)
+        """
+        print(colorTOP, colorMID, colorBOT, "BEFORE top mid bot");
+        print(c0, c1, "BEFORE c0 c1");
+        """
         draw_scanline(int(x0), z0, int(x1), z1, y, screen, zbuffer, c0, c1)
         x0+= dx0
         z0+= dz0
@@ -153,7 +177,15 @@ def scanline_convert(polygons, i, screen, zbuffer, color, colorMap):
         c1[1]+= di1g;
         c1[2]+= di1b;
 
+        """
+        print(colorTOP, colorMID, colorBOT, "AFTER top mid bot");
+        print(c0, c1, "AFTER c0 c1");
+        """
+
         y+= 1
+
+    global firstpoly
+    firstpoly = "true"
 
 def add_polygon( polygons, x0, y0, z0, x1, y1, z1, x2, y2, z2 ):
     add_point(polygons, x0, y0, z0)
