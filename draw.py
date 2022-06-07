@@ -6,25 +6,42 @@ import time
 
 vertex_map = { };
 
-def draw_scanline(x0, z0, x1, z1, y, screen, zbuffer, color):
+def draw_scanline(x0, z0, x1, z1, y, screen, zbuffer, c0, c1):
     if x0 > x1:
         tx = x0
         tz = z0
+        tc = c0
         x0 = x1
         z0 = z1
         x1 = tx
         z1 = tz
+        c0 = c1
+        c1 = tc
+
 
     x = x0
     z = z0
     delta_z = (z1 - z0) / (x1 - x0 + 1) if (x1 - x0 + 1) != 0 else 0
 
+    color = [c0[0], c0[1], c0[2]];
+    delta_color_r = (c1[0] - c0[0]) / (x1 - x0 + 1);
+    delta_color_g = (c1[1] - c0[1]) / (x1 - x0 + 1);
+    delta_color_b = (c1[2] - c0[2]) / (x1 - x0 + 1);
+
     while x <= x1:
+        limit_color(color);
+        for i in range(3):
+            color[i] = int(color[i]);
+        #print(color);
         plot(screen, zbuffer, color, x, y, z)
         x+= 1
         z+= delta_z
 
-def scanline_convert(polygons, i, screen, zbuffer, color):
+        color[0]+= delta_color_r;
+        color[1]+= delta_color_g;
+        color[2]+= delta_color_b;
+
+def scanline_convert(polygons, i, screen, zbuffer, color, colorMap):
     flip = False
     BOT = 0
     TOP = 2
@@ -56,21 +73,76 @@ def scanline_convert(polygons, i, screen, zbuffer, color):
     dx1 = (points[MID][0] - points[BOT][0]) / distance1 if distance1 != 0 else 0
     dz1 = (points[MID][2] - points[BOT][2]) / distance1 if distance1 != 0 else 0
 
+    #GOURAUD SHADING
+    tpointsTOP = points[TOP][:];
+    tpointsMID = points[MID][:];
+    tpointsBOT = points[BOT][:];
+
+    pointsTOP = [0, 0, 0];
+    pointsMID = [0, 0, 0];
+    pointsBOT = [0, 0, 0];
+
+    for i in range(3):
+        pointsTOP[i] = round(tpointsTOP[i], 3);
+        pointsMID[i] = round(tpointsMID[i], 3);
+        pointsBOT[i] = round(tpointsBOT[i], 3);
+
+    pointsTOP = tuple(pointsTOP);
+    pointsMID = tuple(pointsMID);
+    pointsBOT = tuple(pointsBOT);
+
+    #print(tpointsTOP);
+    #print(pointsTOP);
+
+    colorTOP = colorMap[pointsTOP];
+    colorMID = colorMap[pointsMID];
+    colorBOT = colorMap[pointsBOT];
+
+    #print(colorTOP, colorMID, colorBOT);
+
+    #interpolation of color on edges
+    di0r = (colorTOP[0] - colorBOT[0]) / distance0 if distance0 != 0 else 0;
+    di0g = (colorTOP[1] - colorBOT[1]) / distance0 if distance0 != 0 else 0;
+    di0b = (colorTOP[2] - colorBOT[2]) / distance0 if distance0 != 0 else 0;
+
+    di1r = (colorMID[0] - colorBOT[0]) / distance1 if distance1 != 0 else 0;
+    di1g = (colorMID[1] - colorBOT[1]) / distance1 if distance1 != 0 else 0;
+    di1b = (colorMID[2] - colorBOT[2]) / distance1 if distance1 != 0 else 0;
+
+    c0 = colorBOT;
+    c1 = colorBOT;
+
     while y <= int(points[TOP][1]):
         if ( not flip and y >= int(points[MID][1])):
             flip = True
 
             dx1 = (points[TOP][0] - points[MID][0]) / distance2 if distance2 != 0 else 0
             dz1 = (points[TOP][2] - points[MID][2]) / distance2 if distance2 != 0 else 0
+
+            di1r = (colorTOP[0] - colorMID[0]) / distance2 if distance2 != 0 else 0;
+            di1g = (colorTOP[1] - colorMID[1]) / distance2 if distance2 != 0 else 0;
+            di1b = (colorTOP[2] - colorMID[2]) / distance2 if distance2 != 0 else 0;
+
             x1 = points[MID][0]
             z1 = points[MID][2]
 
+            c1 = colorMID;
+
         #draw_line(int(x0), y, z0, int(x1), y, z1, screen, zbuffer, color)
-        draw_scanline(int(x0), z0, int(x1), z1, y, screen, zbuffer, color)
+        draw_scanline(int(x0), z0, int(x1), z1, y, screen, zbuffer, c0, c1)
         x0+= dx0
         z0+= dz0
         x1+= dx1
         z1+= dz1
+
+        c0[0]+= di0r;
+        c0[1]+= di0g;
+        c0[2]+= di0b;
+
+        c1[0]+= di1r;
+        c1[1]+= di1g;
+        c1[2]+= di1b;
+
         y+= 1
 
 def add_polygon( polygons, x0, y0, z0, x1, y1, z1, x2, y2, z2 ):
@@ -85,6 +157,20 @@ def draw_polygons( polygons, screen, zbuffer, view, ambient, light, symbols, ref
 
     for i in range(0, len(polygons), 3):
         hashKey = tuple([round(polygons[i][0], 3), round(polygons[i][1], 3), round(polygons[i][2], 3), round(polygons[i][3], 3)]);
+
+        if hashKey in vertex_map:
+            vertex_map[hashKey].append(i);
+        else:
+            vertex_map[hashKey] = [i];
+
+        hashKey = tuple([round(polygons[i + 1][0], 3), round(polygons[i + 1][1], 3), round(polygons[i + 1][2], 3), round(polygons[i + 1][3], 3)]);
+
+        if hashKey in vertex_map:
+            vertex_map[hashKey].append(i);
+        else:
+            vertex_map[hashKey] = [i];
+
+        hashKey = tuple([round(polygons[i + 2][0], 3), round(polygons[i + 2][1], 3), round(polygons[i + 2][2], 3), round(polygons[i + 2][3], 3)]);
 
         if hashKey in vertex_map:
             vertex_map[hashKey].append(i);
@@ -112,12 +198,30 @@ def draw_polygons( polygons, screen, zbuffer, view, ambient, light, symbols, ref
             #print(tuple(vertex_dup) in vertex_map);
             #time.sleep(5);
 
-            vertex_normal = get_vertex_normal(polygons[point], vertex_map, polygons);
-            #print(vertex_normal);
-            if (tuple(polygons[point]) in vertex_map):
-                print("ye")
+            vertex_normal1 = get_vertex_normal(polygons[point], vertex_map, polygons);
+            vertex_normal2 = get_vertex_normal(polygons[point + 1], vertex_map, polygons);
+            vertex_normal3 = get_vertex_normal(polygons[point + 2], vertex_map, polygons);
 
-            scanline_convert(polygons, point, screen, zbuffer, color)
+            color_1 = get_lighting(vertex_normal1, view, ambient, light, symbols, reflect);
+            color_2 = get_lighting(vertex_normal2, view, ambient, light, symbols, reflect);
+            color_3 = get_lighting(vertex_normal3, view, ambient, light, symbols, reflect);
+
+            edge1 = polygons[point][0:3];
+            edge2 = polygons[point + 1][0:3];
+            edge3 = polygons[point + 2][0:3];
+            for i in range(3):
+                edge1[i] = round(edge1[i], 3);
+                edge2[i] = round(edge2[i], 3);
+                edge3[i] = round(edge3[i], 3);
+
+            colorMap = {
+                        tuple(edge1) : color_1,
+                        tuple(edge2) : color_2,
+                        tuple(edge3) : color_3
+                        };
+
+            #print(colorMap);
+            scanline_convert(polygons, point, screen, zbuffer, color, colorMap);
 
             # draw_line( int(polygons[point][0]),
             #            int(polygons[point][1]),

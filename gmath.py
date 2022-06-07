@@ -34,15 +34,15 @@ def get_vertex_normal(vertex, vertexMap, polygons):
     if tuple(vertex_dup) in vertexMap:
         #print(len(vertexMap[tuple(vertex_dup)]))
         for index in vertexMap[tuple(vertex_dup)]:
-            print("hi");
             normal = calculate_normal(polygons, index);
             for i in range(len(normal)):
                 vertex_normal[i] = vertex_normal[i] + normal[i];
-                print(normal[i]);
 
-            for i in range(3):
-                vertex_normal[i] = vertex_normal[i] / len(vertexMap[tuple(vertex_dup)]);
+        for i in range(3):
+            vertex_normal[i] = vertex_normal[i] / len(vertexMap[tuple(vertex_dup)]);
 
+    if vertex_normal == [0, 0, 0]:
+        print("NO");
     return vertex_normal;
 
 def vertex_color(vertex, vertexMap):
@@ -118,8 +118,17 @@ def normalize(vector):
     magnitude = math.sqrt( vector[0] * vector[0] +
                            vector[1] * vector[1] +
                            vector[2] * vector[2])
+
     for i in range(3):
         vector[i] = vector[i] / magnitude
+    """
+    if magnitude == 0:
+        for i in range(3):
+            vector[i] = 0
+    else:
+        for i in range(3):
+            vector[i] = vector[i] / magnitude
+    """
 
 #Return the dot porduct of a . b
 def dot_product(a, b):
