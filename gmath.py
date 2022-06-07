@@ -38,12 +38,9 @@ def get_vertex_normal(vertex, vertexMap, polygons):
             for i in range(len(normal)):
                 vertex_normal[i] = vertex_normal[i] + normal[i];
 
-        normalize(vertex_normal);
         #for i in range(3):
         #    vertex_normal[i] = vertex_normal[i] / len(vertexMap[tuple(vertex_dup)]);
 
-    if vertex_normal == [0, 0, 0]:
-        print("NO");
     return vertex_normal;
 
 def vertex_color(vertex, vertexMap):

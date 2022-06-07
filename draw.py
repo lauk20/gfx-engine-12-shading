@@ -24,15 +24,18 @@ def draw_scanline(x0, z0, x1, z1, y, screen, zbuffer, c0, c1):
     delta_z = (z1 - z0) / (x1 - x0 + 1) if (x1 - x0 + 1) != 0 else 0
 
     color = [c0[0], c0[1], c0[2]];
-    delta_color_r = (c1[0] - c0[0]) / (x1 - x0 + 1);
-    delta_color_g = (c1[1] - c0[1]) / (x1 - x0 + 1);
-    delta_color_b = (c1[2] - c0[2]) / (x1 - x0 + 1);
+    delta_color_r = (c1[0] - c0[0]) / (x1 - x0 + 1) if (x1 - x0 + 1) != 0 else 0;
+    delta_color_g = (c1[1] - c0[1]) / (x1 - x0 + 1) if (x1 - x0 + 1) != 0 else 0;
+    delta_color_b = (c1[2] - c0[2]) / (x1 - x0 + 1) if (x1 - x0 + 1) != 0 else 0
 
+    print(delta_color_r, delta_color_g, delta_color_b, delta_z);
+
+    print("scanline")
     while x <= x1:
         limit_color(color);
         for i in range(3):
             color[i] = int(color[i]);
-        #print(color);
+        print(color);
         plot(screen, zbuffer, color, x, y, z)
         x+= 1
         z+= delta_z
@@ -40,6 +43,8 @@ def draw_scanline(x0, z0, x1, z1, y, screen, zbuffer, c0, c1):
         color[0]+= delta_color_r;
         color[1]+= delta_color_g;
         color[2]+= delta_color_b;
+
+    time.sleep(1);
 
 def scanline_convert(polygons, i, screen, zbuffer, color, colorMap):
     flip = False
@@ -112,6 +117,9 @@ def scanline_convert(polygons, i, screen, zbuffer, color, colorMap):
     c0 = colorBOT;
     c1 = colorBOT;
 
+    print(colorTOP, colorMID, colorBOT, "top mid bot");
+    print(pointsTOP, pointsMID, pointsBOT, "top mid bot");
+
     while y <= int(points[TOP][1]):
         if ( not flip and y >= int(points[MID][1])):
             flip = True
@@ -122,6 +130,8 @@ def scanline_convert(polygons, i, screen, zbuffer, color, colorMap):
             di1r = (colorTOP[0] - colorMID[0]) / distance2 if distance2 != 0 else 0;
             di1g = (colorTOP[1] - colorMID[1]) / distance2 if distance2 != 0 else 0;
             di1b = (colorTOP[2] - colorMID[2]) / distance2 if distance2 != 0 else 0;
+
+            print(di1r, di1g, di1b);
 
             x1 = points[MID][0]
             z1 = points[MID][2]
@@ -189,10 +199,6 @@ def draw_polygons( polygons, screen, zbuffer, view, ambient, light, symbols, ref
         if normal[2] > 0:
 
             color = get_lighting(normal, view, ambient, light, symbols, reflect )
-
-            vertex_dup = polygons[point][:];
-            for i in range(len(vertex_dup)):
-                vertex_dup[i] = round(vertex_dup[i], 3);
 
             #print(tuple(vertex_dup), tuple(vertex_dup) in vertex_map);
             #print(tuple(vertex_dup) in vertex_map);
