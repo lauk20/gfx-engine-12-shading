@@ -278,11 +278,12 @@ def draw_polygons( polygons, screen, zbuffer, view, ambient, light, symbols, ref
                             tuple(edge3) : color_3
                             };
 
-                #print(colorMap);
+                scanline_convert(polygons, point, screen, zbuffer, color, shading, colorMap);
+
             elif (shading == 'phong'):
                 qwert = "placeholder";
-
-            scanline_convert(polygons, point, screen, zbuffer, color, shading);
+            else:
+                scanline_convert(polygons, point, screen, zbuffer, color, shading);
 
             # draw_line( int(polygons[point][0]),
             #            int(polygons[point][1]),
