@@ -80,7 +80,7 @@ def save_extension( screen, fname ):
             pixels.append( tuple(pixel) )
 
     img.putdata(pixels)
-    img.save(fname, 'PNG')
+    img.save(fname + ".png", 'PNG')
 
 def display( screen ):
     img = Image.new('RGB', (len(screen[0]), len(screen)))
