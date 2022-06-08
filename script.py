@@ -81,6 +81,7 @@ def second_pass( commands, num_frames ):
 
             for j in range(int(start_frame), int(end_frame + 1), 1):
                 frames[j][knobname] = current + increment;
+                current = current + increment;
 
 
     return frames
@@ -179,17 +180,23 @@ def run(filename):
                 draw_lines(tmp, screen, zbuffer, color)
                 tmp = []
             elif c == 'move':
-                tmp = make_translate(args[0] * symbols[command['knob']], args[1] * symbols[command['knob']], args[2] * symbols[command['knob']])
+                tmp = make_translate(args[0], args[1], args[2])
+                if (command['knob'] != None):
+                    tmp = make_translate(args[0] * symbols[command['knob']], args[1] * symbols[command['knob']], args[2] * symbols[command['knob']])
                 matrix_mult(stack[-1], tmp)
                 stack[-1] = [x[:] for x in tmp]
                 tmp = []
             elif c == 'scale':
-                tmp = make_scale(args[0] * symbols[command['knob']], args[1] * symbols[command['knob']], args[2] * symbols[command['knob']])
+                tmp = make_scale(args[0], args[1], args[2])
+                if (command['knob'] != None):
+                    tmp = make_scale(args[0] * symbols[command['knob']], args[1] * symbols[command['knob']], args[2] * symbols[command['knob']])
                 matrix_mult(stack[-1], tmp)
                 stack[-1] = [x[:] for x in tmp]
                 tmp = []
             elif c == 'rotate':
-                theta = args[1] * (math.pi/180) * symbols[command['knob']]
+                theta = args[1] * (math.pi/180);
+                if (command['knob'] != None):
+                    theta = args[1] * (math.pi/180) * symbols[command['knob']]
                 if args[0] == 'x':
                     tmp = make_rotX(theta)
                 elif args[0] == 'y':
@@ -210,3 +217,17 @@ def run(filename):
             elif c == 'shading':
                 shading = command['shade_type'];
             # end operation loop
+        if (len(frames) > 1):
+            save_extension(screen, "anim/" + name + f"%03d"%i);
+            print("Saved Frame: " + "anim/" + name + f"%03d"%i);
+
+            tmp = new_matrix()
+            ident( tmp )
+
+            stack = [ [x[:] for x in tmp] ]
+            screen = new_screen()
+            zbuffer = new_zbuffer()
+            tmp = []
+
+    if len(frames) > 1:
+        make_animation(name);
