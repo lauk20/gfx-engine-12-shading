@@ -197,7 +197,7 @@ def scanline_convert(polygons, i, screen, zbuffer, color, shading, colorMap = No
             """
 
             y+= 1
-    elif shading == 'phong':
+    elif shading == 'phong': #phong code turned out to be exactly the same as gouraud
         colorTOP = colorMap[pointsTOP];
         colorMID = colorMap[pointsMID];
         colorBOT = colorMap[pointsBOT];
