@@ -47,17 +47,23 @@ def draw_scanline(x0, z0, x1, z1, y, screen, zbuffer, c0, c1, shading = 'flat', 
             color[1]+= delta_color_g;
             color[2]+= delta_color_b;
     elif (shading == "phong"):
-        v0 = c0[:];
-        v1 = c1[:];
-        currentNormal = c0[:];
+        #"color" is actually the interpolated normal
+        color = c0[:];
+        delta_color_r = (c1[0] - c0[0]) / (x1 - x0 + 1) if (x1 - x0 + 1) != 0 else 0;
+        delta_color_g = (c1[1] - c0[1]) / (x1 - x0 + 1) if (x1 - x0 + 1) != 0 else 0;
+        delta_color_b = (c1[2] - c0[2]) / (x1 - x0 + 1) if (x1 - x0 + 1) != 0 else 0
+
         while x <= x1:
-            color = get_lighting(currentNormal, lighting[0], lighting[1], lighting[2], lighting[3], lighting[4]);
-            plot(screen, zbuffer, color, x, y, z)
+            normal = color[:];
+
+            phong = get_lighting(normal, lighting[0], lighting[1], lighting[2], lighting[3], lighting[4]);
+            plot(screen, zbuffer, phong, x, y, z)
             x+= 1
             z+= delta_z
 
-            for i in range(3):
-                currentNormal[i] = v0[i] * (1 - (x - x0 / x1 - x0)) + v1[i] * ((x - x0 / x1 - x0));
+            color[0]+= delta_color_r;
+            color[1]+= delta_color_g;
+            color[2]+= delta_color_b;
     else:
         while x <= x1:
             plot(screen, zbuffer, c0, x, y, z)
@@ -192,41 +198,75 @@ def scanline_convert(polygons, i, screen, zbuffer, color, shading, colorMap = No
 
             y+= 1
     elif shading == 'phong':
-        print("pngggg");
-        vTOP = colorMap[pointsTOP];
-        vMID = colorMap[pointsMID];
-        vBOT = colorMap[pointsBOT];
+        colorTOP = colorMap[pointsTOP];
+        colorMID = colorMap[pointsMID];
+        colorBOT = colorMap[pointsBOT];
 
-        normal0 = vBOT[:];
-        normal1 = vBOT[:];
+        #print(colorTOP, colorMID, colorBOT);
 
+        #interpolation of color on edges
+        di0r = (colorTOP[0] - colorBOT[0]) / distance0 if distance0 != 0 else 0;
+        di0g = (colorTOP[1] - colorBOT[1]) / distance0 if distance0 != 0 else 0;
+        di0b = (colorTOP[2] - colorBOT[2]) / distance0 if distance0 != 0 else 0;
+
+        di1r = (colorMID[0] - colorBOT[0]) / distance1 if distance1 != 0 else 0;
+        di1g = (colorMID[1] - colorBOT[1]) / distance1 if distance1 != 0 else 0;
+        di1b = (colorMID[2] - colorBOT[2]) / distance1 if distance1 != 0 else 0;
+
+        c0 = colorBOT[:];
+        c1 = colorBOT[:];
+
+        #print(di1r, di1g, di1b, "di1r di1g di1b");
+        """
+        print(di0r, di1r, "di0r di1r")
+
+        print(colorTOP, colorMID, colorBOT, "top mid bot");
+        print(pointsTOP, pointsMID, pointsBOT, "top mid bot");
+        """
         while y <= int(points[TOP][1]):
             if ( not flip and y >= int(points[MID][1])):
+                #print("FLIPFPFIFIPFIPFPFPIFIPPFIIPFPFPF")
                 flip = True
 
                 dx1 = (points[TOP][0] - points[MID][0]) / distance2 if distance2 != 0 else 0
                 dz1 = (points[TOP][2] - points[MID][2]) / distance2 if distance2 != 0 else 0
 
+                di1r = (colorTOP[0] - colorMID[0]) / distance2 if distance2 != 0 else 0;
+                di1g = (colorTOP[1] - colorMID[1]) / distance2 if distance2 != 0 else 0;
+                di1b = (colorTOP[2] - colorMID[2]) / distance2 if distance2 != 0 else 0;
+
                 x1 = points[MID][0]
                 z1 = points[MID][2]
-                normal1 = vMID[:];
+                c1 = colorMID[:];
 
-            print(normal0, normal1);
-            #time.sleep(1);
-            draw_scanline(int(x0), z0, int(x1), z1, y, screen, zbuffer, normal0, normal1, 'phong', lighting);
+                """
+                print(c0, c1, "before flip");
+                print(c0, c1, "after flip");
+                print(int(x0), int(x1), y, "x0 x1 y");
+                """
+            #draw_line(int(x0), y, z0, int(x1), y, z1, screen, zbuffer, color)
+            """
+            print(colorTOP, colorMID, colorBOT, "BEFORE top mid bot");
+            print(c0, c1, "BEFORE c0 c1");
+            """
+            draw_scanline(int(x0), z0, int(x1), z1, y, screen, zbuffer, c0, c1, 'phong', lighting)
             x0+= dx0
             z0+= dz0
             x1+= dx1
             z1+= dz1
 
-            for i in range(3):
-                normal0[i] = vBOT[i] * (1 - ((y - points[BOT][1]) / distance0)) + vTOP[i] * (((y - points[BOT][1]) / distance0));
+            c0[0]+= di0r;
+            c0[1]+= di0g;
+            c0[2]+= di0b;
 
-            for i in range(3):
-                if flip:
-                    normal1[i] = vMID[i] * (1 - ((y - points[MID][1]) / distance2)) + vTOP[i] * (((y - points[MID][1]) / distance2));
-                else :
-                    normal1[i] = vBOT[i] * (1 - ((y - points[BOT][1]) / distance1)) + vMID[i] * (((y - points[BOT][1]) / distance1));
+            c1[0]+= di1r;
+            c1[1]+= di1g;
+            c1[2]+= di1b;
+
+            """
+            print(colorTOP, colorMID, colorBOT, "AFTER top mid bot");
+            print(c0, c1, "AFTER c0 c1");
+            """
 
             y+= 1
     else:
