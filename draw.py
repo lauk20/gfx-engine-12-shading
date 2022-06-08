@@ -16,7 +16,7 @@ def draw_scanline(x0, z0, x1, z1, y, screen, zbuffer, c0, c1, shading = 'flat', 
         x1 = tx
         z1 = tz
 
-        if shading != "phong":
+        if shading != "phongaaa":
             tc = c0;
             c0 = c1;
             c1 = tc;
@@ -199,6 +199,7 @@ def scanline_convert(polygons, i, screen, zbuffer, color, shading, colorMap = No
 
         normal0 = vBOT[:];
         normal1 = vBOT[:];
+
         while y <= int(points[TOP][1]):
             if ( not flip and y >= int(points[MID][1])):
                 flip = True
