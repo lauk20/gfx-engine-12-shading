@@ -6,60 +6,66 @@ import time
 
 vertex_map = { };
 #firstpoly = "false"
-def draw_scanline(x0, z0, x1, z1, y, screen, zbuffer, c0, c1):
+def draw_scanline(x0, z0, x1, z1, y, screen, zbuffer, c0, c1, shading = 'flat', lighting = None):
     #print(c0, c1, "NOW");
     if x0 > x1:
         tx = x0
         tz = z0
-        tc = c0
         x0 = x1
         z0 = z1
         x1 = tx
         z1 = tz
-        c0 = c1
-        c1 = tc
+
+        if shading != "phong":
+            tc = c0;
+            c0 = c1;
+            c1 = tc;
+
 
 
     x = x0
     z = z0
     delta_z = (z1 - z0) / (x1 - x0 + 1) if (x1 - x0 + 1) != 0 else 0
 
-    color = c0[:];
-    delta_color_r = (c1[0] - c0[0]) / (x1 - x0 + 1) if (x1 - x0 + 1) != 0 else 0;
-    delta_color_g = (c1[1] - c0[1]) / (x1 - x0 + 1) if (x1 - x0 + 1) != 0 else 0;
-    delta_color_b = (c1[2] - c0[2]) / (x1 - x0 + 1) if (x1 - x0 + 1) != 0 else 0
+    if (shading == "gouraud"):
+        color = c0[:];
+        delta_color_r = (c1[0] - c0[0]) / (x1 - x0 + 1) if (x1 - x0 + 1) != 0 else 0;
+        delta_color_g = (c1[1] - c0[1]) / (x1 - x0 + 1) if (x1 - x0 + 1) != 0 else 0;
+        delta_color_b = (c1[2] - c0[2]) / (x1 - x0 + 1) if (x1 - x0 + 1) != 0 else 0
 
-    #print(delta_color_r, delta_color_g, delta_color_b, delta_z);
-    """
-    if firstpoly == "true":
-        print(c0, c1, "in scanline");
-        print(delta_color_r, delta_color_g, delta_color_b, delta_z);
-    """
+        while x <= x1:
+            ncolor = color[:];
+            for i in range(3):
+                ncolor[i] = int(ncolor[i]);
+            limit_color(ncolor);
 
-    while x <= x1:
-        """
-        print(color);
+            plot(screen, zbuffer, ncolor, x, y, z)
+            x+= 1
+            z+= delta_z
 
-        if firstpoly == "true":
-            pwqoeir = 1;
-            #time.sleep(1);
-        """
+            color[0]+= delta_color_r;
+            color[1]+= delta_color_g;
+            color[2]+= delta_color_b;
+    elif (shading == "phong"):
+        v0 = c0[:];
+        v1 = c1[:];
+        currentNormal = c0[:];
+        while x <= x1:
+            color = get_lighting(currentNormal, lighting[0], lighting[1], lighting[2], lighting[3], lighting[4]);
+            plot(screen, zbuffer, color, x, y, z)
+            x+= 1
+            z+= delta_z
 
-        ncolor = color[:];
-        for i in range(3):
-            ncolor[i] = int(ncolor[i]);
-        limit_color(ncolor);
-
-        plot(screen, zbuffer, ncolor, x, y, z)
-        x+= 1
-        z+= delta_z
-
-        color[0]+= delta_color_r;
-        color[1]+= delta_color_g;
-        color[2]+= delta_color_b;
+            for i in range(3):
+                currentNormal[i] = v0[i] * (1 - (x - x0 / x1 - x0)) + v1[i] * ((x - x0 / x1 - x0));
+    else:
+        while x <= x1:
+            plot(screen, zbuffer, c0, x, y, z)
+            x+= 1
+            z+= delta_z
 
 
-def scanline_convert(polygons, i, screen, zbuffer, color, shading, colorMap = None):
+def scanline_convert(polygons, i, screen, zbuffer, color, shading, colorMap = None, v1 = None, v2 = None, v3 = None, lighting = None):
     flip = False
     BOT = 0
     TOP = 2
@@ -91,25 +97,26 @@ def scanline_convert(polygons, i, screen, zbuffer, color, shading, colorMap = No
     dx1 = (points[MID][0] - points[BOT][0]) / distance1 if distance1 != 0 else 0
     dz1 = (points[MID][2] - points[BOT][2]) / distance1 if distance1 != 0 else 0
 
+
+    tpointsTOP = points[TOP][:];
+    tpointsMID = points[MID][:];
+    tpointsBOT = points[BOT][:];
+
+    pointsTOP = [0, 0, 0];
+    pointsMID = [0, 0, 0];
+    pointsBOT = [0, 0, 0];
+
+    for i in range(3):
+        pointsTOP[i] = round(tpointsTOP[i], 3);
+        pointsMID[i] = round(tpointsMID[i], 3);
+        pointsBOT[i] = round(tpointsBOT[i], 3);
+
+    pointsTOP = tuple(pointsTOP);
+    pointsMID = tuple(pointsMID);
+    pointsBOT = tuple(pointsBOT);
+
     #GOURAUD SHADING
     if (shading == 'gouraud'):
-        tpointsTOP = points[TOP][:];
-        tpointsMID = points[MID][:];
-        tpointsBOT = points[BOT][:];
-
-        pointsTOP = [0, 0, 0];
-        pointsMID = [0, 0, 0];
-        pointsBOT = [0, 0, 0];
-
-        for i in range(3):
-            pointsTOP[i] = round(tpointsTOP[i], 3);
-            pointsMID[i] = round(tpointsMID[i], 3);
-            pointsBOT[i] = round(tpointsBOT[i], 3);
-
-        pointsTOP = tuple(pointsTOP);
-        pointsMID = tuple(pointsMID);
-        pointsBOT = tuple(pointsBOT);
-
         #print(tpointsTOP);
         #print(pointsTOP);
 
@@ -164,7 +171,7 @@ def scanline_convert(polygons, i, screen, zbuffer, color, shading, colorMap = No
             print(colorTOP, colorMID, colorBOT, "BEFORE top mid bot");
             print(c0, c1, "BEFORE c0 c1");
             """
-            draw_scanline(int(x0), z0, int(x1), z1, y, screen, zbuffer, c0, c1)
+            draw_scanline(int(x0), z0, int(x1), z1, y, screen, zbuffer, c0, c1, 'gouraud')
             x0+= dx0
             z0+= dz0
             x1+= dx1
@@ -185,7 +192,42 @@ def scanline_convert(polygons, i, screen, zbuffer, color, shading, colorMap = No
 
             y+= 1
     elif shading == 'phong':
-        asdfs = 1;
+        print("pngggg");
+        vTOP = colorMap[pointsTOP];
+        vMID = colorMap[pointsMID];
+        vBOT = colorMap[pointsBOT];
+
+        normal0 = vBOT[:];
+        normal1 = vBOT[:];
+        while y <= int(points[TOP][1]):
+            if ( not flip and y >= int(points[MID][1])):
+                flip = True
+
+                dx1 = (points[TOP][0] - points[MID][0]) / distance2 if distance2 != 0 else 0
+                dz1 = (points[TOP][2] - points[MID][2]) / distance2 if distance2 != 0 else 0
+
+                x1 = points[MID][0]
+                z1 = points[MID][2]
+                normal1 = vMID[:];
+
+            print(normal0, normal1);
+            #time.sleep(1);
+            draw_scanline(int(x0), z0, int(x1), z1, y, screen, zbuffer, normal0, normal1, 'phong', lighting);
+            x0+= dx0
+            z0+= dz0
+            x1+= dx1
+            z1+= dz1
+
+            for i in range(3):
+                normal0[i] = vBOT[i] * (1 - ((y - points[BOT][1]) / distance0)) + vTOP[i] * (((y - points[BOT][1]) / distance0));
+
+            for i in range(3):
+                if flip:
+                    normal1[i] = vMID[i] * (1 - ((y - points[MID][1]) / distance2)) + vTOP[i] * (((y - points[MID][1]) / distance2));
+                else :
+                    normal1[i] = vBOT[i] * (1 - ((y - points[BOT][1]) / distance1)) + vMID[i] * (((y - points[BOT][1]) / distance1));
+
+            y+= 1
     else:
         while y <= int(points[TOP][1]):
             if ( not flip and y >= int(points[MID][1])):
@@ -259,6 +301,14 @@ def draw_polygons( polygons, screen, zbuffer, view, ambient, light, symbols, ref
             vertex_normal2 = get_vertex_normal(polygons[point + 1], vertex_map, polygons);
             vertex_normal3 = get_vertex_normal(polygons[point + 2], vertex_map, polygons);
 
+            edge1 = polygons[point][0:3];
+            edge2 = polygons[point + 1][0:3];
+            edge3 = polygons[point + 2][0:3];
+            for i in range(3):
+                edge1[i] = round(edge1[i], 3);
+                edge2[i] = round(edge2[i], 3);
+                edge3[i] = round(edge3[i], 3);
+
             if (shading == 'gouraud'):
                 color_1 = get_lighting(vertex_normal1, view, ambient, light, symbols, reflect);
                 color_2 = get_lighting(vertex_normal2, view, ambient, light, symbols, reflect);
@@ -281,7 +331,12 @@ def draw_polygons( polygons, screen, zbuffer, view, ambient, light, symbols, ref
                 scanline_convert(polygons, point, screen, zbuffer, color, shading, colorMap);
 
             elif (shading == 'phong'):
-                qwert = "placeholder";
+                colorMap = {
+                    tuple(edge1) : vertex_normal1,
+                    tuple(edge2) : vertex_normal2,
+                    tuple(edge3) : vertex_normal3
+                }
+                scanline_convert(polygons, point, screen, zbuffer, color, shading, colorMap, vertex_normal1, vertex_normal2, vertex_normal3, [view, ambient, light, symbols, reflect]);
             else:
                 scanline_convert(polygons, point, screen, zbuffer, color, shading);
 
