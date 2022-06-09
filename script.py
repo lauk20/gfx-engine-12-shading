@@ -216,6 +216,12 @@ def run(filename):
                 save_extension(screen, args[0])
             elif c == 'shading':
                 shading = command['shade_type'];
+            elif c == 'mesh':
+                if command['constants']:
+                    reflect = command['constants']
+                read_obj(tmp, args[0]);
+                matrix_mult( stack[-1], tmp )
+                draw_polygons(tmp, screen, zbuffer, view, ambient, light, symbols, reflect, shading);
             # end operation loop
         if (len(frames) > 1):
             save_extension(screen, "anim/" + name + f"%03d"%i);
