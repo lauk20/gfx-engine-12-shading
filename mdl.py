@@ -79,7 +79,7 @@ reserved = {
     "setknobs" : "SET_KNOBS",
     "focal" : "FOCAL",
     "display" : "DISPLAY",
-    "web" : "WEB"
+    "web" : "WEB",
 }
 
 t_ignore = " \t"
@@ -331,21 +331,8 @@ def p_command_generate_rayfiles(p):
     commands.append({'op':p[1], 'args':None})
 
 def p_command_mesh(p):
-    """command : MESH CO TEXT
-               | MESH SYMBOL CO TEXT
-               | MESH CO TEXT SYMBOL
-               | MESH SYMBOL CO TEXT SYMBOL"""
-    cmd = {'op':p[1], 'args' : [], 'cs':None, 'constants':None}
-    arg_start = 2
-    if isinstance(p[2], str):
-        cmd['constants'] = p[2]
-        arg_start+= 1
-    cmd['args'].append(p[arg_start + 1] + p[arg_start + 2])
-    if len(p) == 4 and isinstance(p[3], str):
-        cmd['cs'] = p[3]
-    if len(p) == 5 and isinstance(p[4], str):
-        cmd['cs'] = p[4]
-    commands.append(cmd)
+    """command : MESH CO TEXT TEXT SYMBOL"""
+    commands.append({'op' : p[1], 'args' : [p[3] + p[4]]})
 
 def p_save_knobs(p):
     "command : SAVE_KNOBS SYMBOL"
