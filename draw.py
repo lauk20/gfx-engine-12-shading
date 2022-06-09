@@ -404,6 +404,21 @@ def draw_polygons( polygons, screen, zbuffer, view, ambient, light, symbols, ref
             #            screen, zbuffer, color)
         point+= 3
 
+#obj reader
+def read_obj(polygons, filename):
+    filename = filename;
+    file = open(filename);
+    line = file.readline();
+    vertices = []
+    while line:
+        args = line.split();
+        if (len(args) > 0 and args[0] == 'v'):
+            vertices.append([float(args[1]), float(args[2]), float(args[3]), 1.0])
+        elif (len(args) > 0 and args[0] == 'f'):
+            polygons.append(vertices[int(args[1]) - 1][:]);
+            polygons.append(vertices[int(args[2]) - 1][:]);
+            polygons.append(vertices[int(args[3]) - 1][:]);
+        line = file.readline();
 
 def add_box( polygons, x, y, z, width, height, depth ):
     x1 = x + width
