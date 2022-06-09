@@ -42,6 +42,7 @@ def first_pass( commands ):
 
     if (frames and not basename):
         print("Basename: image");
+        name = "image";
 
     if (not frames):
         num_frames = 1;
