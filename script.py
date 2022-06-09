@@ -84,7 +84,6 @@ def second_pass( commands, num_frames ):
                 frames[j][knobname] = current + increment;
                 current = current + increment;
 
-
     return frames
 
 
@@ -136,10 +135,10 @@ def run(filename):
     coords = []
     coords1 = []
     shading = 'flat'
-
+    #print(symbols);
     for i in range(len(frames)):
         for k, v in frames[i].items():
-            symbols[k] = v;
+            symbols[k][1] = v;
         for command in commands:
             #print(command)
             c = command['op']
@@ -183,21 +182,23 @@ def run(filename):
             elif c == 'move':
                 tmp = make_translate(args[0], args[1], args[2])
                 if (command['knob'] != None):
-                    tmp = make_translate(args[0] * symbols[command['knob']], args[1] * symbols[command['knob']], args[2] * symbols[command['knob']])
+                    #print(command);
+                    #print("SYYY", symbols[command['knob']]);
+                    tmp = make_translate(args[0] * symbols[command['knob']][1], args[1] * symbols[command['knob']][1], args[2] * symbols[command['knob']][1])
                 matrix_mult(stack[-1], tmp)
                 stack[-1] = [x[:] for x in tmp]
                 tmp = []
             elif c == 'scale':
                 tmp = make_scale(args[0], args[1], args[2])
                 if (command['knob'] != None):
-                    tmp = make_scale(args[0] * symbols[command['knob']], args[1] * symbols[command['knob']], args[2] * symbols[command['knob']])
+                    tmp = make_scale(args[0] * symbols[command['knob']][1], args[1] * symbols[command['knob']][1], args[2] * symbols[command['knob']][1])
                 matrix_mult(stack[-1], tmp)
                 stack[-1] = [x[:] for x in tmp]
                 tmp = []
             elif c == 'rotate':
                 theta = args[1] * (math.pi/180);
                 if (command['knob'] != None):
-                    theta = args[1] * (math.pi/180) * symbols[command['knob']]
+                    theta = args[1] * (math.pi/180) * symbols[command['knob']][1]
                 if args[0] == 'x':
                     tmp = make_rotX(theta)
                 elif args[0] == 'y':
