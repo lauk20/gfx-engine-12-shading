@@ -4,7 +4,7 @@
 ### Class Period: 5
 ---
 ## How to Run
-1. ```python3 main.py [.mdl filename]```
+1. Run ```make``` or ```python3 main.py [.mdl filename]```
 2. Currently includes a file called "obj.mdl" which will create a spinning teapot animation with **PHONG** shading, reading from teapot.obj"
 
 ---
