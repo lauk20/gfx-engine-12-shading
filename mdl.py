@@ -331,8 +331,8 @@ def p_command_generate_rayfiles(p):
     commands.append({'op':p[1], 'args':None})
 
 def p_command_mesh(p):
-    """command : MESH CO TEXT TEXT SYMBOL"""
-    commands.append({'op' : p[1], 'args' : [p[3] + p[4]], 'constants' : p[5]})
+    """command : MESH SYMBOL CO TEXT TEXT"""
+    commands.append({'op' : p[1], 'args' : [p[4] + p[5]], 'constants' : p[2]})
 
 def p_save_knobs(p):
     "command : SAVE_KNOBS SYMBOL"
