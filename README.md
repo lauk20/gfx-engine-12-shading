@@ -3,9 +3,19 @@
 ### Partner name:
 ### Class Period: 5
 ---
+## How to Run
+1. ```python3 main.py [.mdl filename]```
+2. Currently includes a file called "obj.mdl" which will create a spinning teapot animation with **PHONG** shading, reading from teapot.obj"
+
+---
+
 ## New Graphics Engine Features
 1. Gouraud Shading
+- Use command ```shading gouraud``` to use Gouraud shading. Default shading is flat shading.
 2. Phong Shading
+- Use command ```shading phong``` to use Phong shading. Default shading is flat shading.
+3. .obj Reader
+- Use command like so: ```mesh constant : teapot.obj```, replacing constant with any color constants and teapot.obj with any .obj file.
 
 ---
 ## The Details
